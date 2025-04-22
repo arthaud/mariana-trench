@@ -4,10 +4,14 @@ on:
       version:
         description: 'Version to publish'
         required: true
+  pull_request:
+  push:
+    branches:
+      - '**'
 
 jobs:
   build-macos:
-    runs-on: macos-11
+    runs-on: macos-13
 
     steps:
       - uses: actions/checkout@v2
@@ -32,14 +36,14 @@ jobs:
       - name: Log the output directory
         run: ls -lisah dist
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-wheels
           path: dist/
           if-no-files-found: error
 
   build-ubuntu:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v2
@@ -64,34 +68,8 @@ jobs:
       - name: Log the output directory
         run: ls -lisah dist
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: ubuntu-wheels
           path: dist/
           if-no-files-found: error
-
-  publish-pypi:
-    runs-on: ubuntu-20.04
-    needs: [build-macos, build-ubuntu]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Make a 'dist' folder
-        run: mkdir dist
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: macos-wheels
-          path: ./dist
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: ubuntu-wheels
-          path: ./dist
-
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
